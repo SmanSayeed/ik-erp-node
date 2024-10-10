@@ -37,3 +37,15 @@ npm-debug.log
 
 **/*.sqlite
 db.sqlite
+
+# Ignore all files in the db directory
+db/*
+
+# But keep the db directory itself
+!db/
+
+# Ignore all files in the upload directory
+upload/*
+
+# But keep the upload directory itself
+!upload/
