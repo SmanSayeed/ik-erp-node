@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const uploadController = require('../controllers/uploadController');
+const dataController = require('../controllers/dataController');
 const path = require('path');
 
-router.get('/nodes', uploadController.getAllNodes);
+router.get('/nodes', dataController.getAllNodes);
+router.get('/mesh', dataController.clientMeshData);
+router.get('/mesh/child', dataController.childClientMeshData);
 
 module.exports = router;

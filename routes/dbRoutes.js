@@ -13,12 +13,4 @@ const upload = multer({
 // POST API to upload SQLite database
 router.post('/upload', upload.single('database'), uploadController.uploadDatabase);
 
-// GET API to retrieve all user folders
-router.get('/users', uploadController.getAllUsers);
-
-// GET API to retrieve data from specific user's database (main or power table)
-router.get('/:username/:table', uploadController.getUserData);
-
-// router.get('/nodes/:username', uploadController.getAllNodes);
-
 module.exports = router;
