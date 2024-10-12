@@ -5,6 +5,8 @@ const powerController = require('../controllers/powerController');
 const path = require('path');
 
 router.get('/client', powerController.clientPowerData);
-router.get('/child', powerController.childClientPowerData);
+router.get('/child', powerController.getChildClientPowerData);
+
+router.get('/client-child', powerController.clientPowerDataWithChildren);
 
 module.exports = router;

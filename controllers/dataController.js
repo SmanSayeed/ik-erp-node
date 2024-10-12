@@ -257,5 +257,73 @@ exports.childClientMeshData = async (req, res) => {
 };
 
 
+/* api to get child client meshes and nested nodes */
+
+exports.getChildClientMeshNodes = (req, res) => {
+  const clientName = req.query.client_name;
+
+  if (!clientName) {
+      return sendResponse(res, 400, false, 'Client name is required');
+  }
+
+  const dbPath = getDatabaseFilePath(clientName);
+  const db = new sqlite3.Database(dbPath);
+
+  const query = "SELECT * FROM main WHERE type = 'mesh' AND extra = 'child-client'";
+  
+  db.all(query, (err, meshes) => {
+      if (err) {
+          return sendResponse(res, 500, false, 'Error retrieving mesh data');
+      }
+
+      if (!meshes || meshes.length === 0) {
+          return sendResponse(res, 404, false, 'No mesh data found');
+      }
+
+      let completedMeshes = 0;
+      const meshDataWithNodes = [];
+
+      meshes.forEach(mesh => {
+          const meshid = mesh.id;
+
+          const meshQueryData = {
+              meshid: meshid,
+              meshdoc: mesh,
+              type: 'mesh',
+              meshnodes: []
+          };
+
+          // Fetch associated nodes for the mesh
+          getNodeDataByMeshId(db, meshid, (nodeErr, nodes) => {
+              if (nodeErr) {
+                  return sendResponse(res, 500, false, 'Error retrieving node data');
+              }
+
+              if (nodes && nodes.length > 0) {
+                  nodes.forEach(node => {
+                      meshQueryData.meshnodes.push({
+                          nodeid: node.id,
+                          type: 'node',
+                          doc: node,
+                          extra: node.extra || null
+                      });
+                  });
+              }
+
+              meshDataWithNodes.push(meshQueryData);
+              completedMeshes++;
+
+              if (completedMeshes === meshes.length) {
+                  sendResponse(res, 200, true, 'Child client mesh and node data retrieved successfully '+completedMeshes, meshDataWithNodes);
+              }
+          });
+      });
+  });
+
+  db.close();
+};
+
+
+
 
 

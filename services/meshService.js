@@ -14,6 +14,40 @@ exports.getMeshData = (db, callback) => {
   });
 };
 
+
+
+exports.getMeshDataForClientAndChild = (db, callback) => {
+  // Query for parent meshes (extra is null or empty)
+  const parentMeshQuery = `SELECT doc FROM main WHERE type = 'mesh' AND (extra IS NULL OR extra = '')`;
+
+  db.all(parentMeshQuery, [], (err, parentRows) => {
+    if (err) {
+      return callback(err, null);
+    }
+
+    // Parse parent mesh data
+    const parentMeshes = parentRows.map(row => JSON.parse(row.doc));
+
+    // Query for child meshes (extra is 'child-client')
+    const childMeshQuery = `SELECT doc FROM main WHERE type = 'mesh' AND extra = 'child-client'`;
+
+    db.all(childMeshQuery, [], (err, childRows) => {
+      if (err) {
+        return callback(err, null);
+      }
+
+      // Parse child mesh data
+      const childMeshes = childRows.map(row => JSON.parse(row.doc));
+
+      // Log filtered results for verification
+    
+
+      // Callback with both parent and child meshes
+      callback(null, { parentMeshes, childMeshes });
+    });
+  });
+};
+
 // Function to fetch nodes associated with a mesh ID
 exports.getNodeDataByMeshId = (db, meshid, callback) => {
   const nodeQuery = `SELECT doc FROM main WHERE type = 'node' AND extra = '${meshid}'`;

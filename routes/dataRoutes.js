@@ -6,6 +6,6 @@ const path = require('path');
 
 router.get('/nodes', dataController.getAllNodes);
 router.get('/mesh', dataController.clientMeshData);
-router.get('/mesh/child', dataController.childClientMeshData);
+router.get('/mesh/child', dataController.getChildClientMeshNodes);
 
 module.exports = router;

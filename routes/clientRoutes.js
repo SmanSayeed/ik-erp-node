@@ -18,7 +18,9 @@ router.post('/upload', upload.single('database'), uploadController.uploadDatabas
 router.get('/clients', clientController.getAllClients);
 
 // GET API to retrieve data from specific user's database (main or power table)
-router.get('/:clientName/:table', clientController.getClientData);
+// router.get('/:clientName/:table', clientController.getClientData);
+
+router.get('/child', clientController.getChildClients);
 
 // router.get('/nodes/:username', uploadController.getAllNodes);
 

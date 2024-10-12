@@ -3,6 +3,7 @@ const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const { sendResponse } = require('../helpers/responseHelper');
 const auth = require('../config/auth');
+const { getDatabaseFilePath } = require('../helpers/dbHelper');
 
 const allowedUsers = auth.allowedUsers;
 
@@ -49,3 +50,38 @@ exports.getAllClients = (req, res) => {
   
     db.close();
   };
+
+  exports.getChildClients = (req, res) => {
+    const userName = req.query.username;
+
+    if (!userName) {
+        return sendResponse(res, 400, false, 'Username is required');
+    }
+
+    const dbPath = getDatabaseFilePath(userName);
+    const db = new sqlite3.Database(dbPath);
+
+    const query = "SELECT * FROM main WHERE type = 'mesh' AND extra = 'child-client'";
+    
+    db.all(query, (err, rows) => {
+        if (err) {
+            return sendResponse(res, 500, false, 'Error retrieving child client data');
+        }
+
+        if (rows.length === 0) {
+            return sendResponse(res, 404, false, 'No child clients found');
+        }
+
+        const childClients = rows.map(row => {
+            const doc = JSON.parse(row.doc); 
+            const name = doc.name;
+            return {
+            meshid: row.id,
+            name: name,
+        }});
+
+        return sendResponse(res, 200, true, 'Child clients retrieved successfully', childClients);
+    });
+
+    db.close();
+};
