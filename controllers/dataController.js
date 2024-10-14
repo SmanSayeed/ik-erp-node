@@ -95,16 +95,17 @@ exports.clientMeshData = async (req, res) => {
       let completedMeshes = 0;
 
       meshes.forEach(mesh => {
-        const meshid = mesh._id;
         const meshQueryData = {
-          meshid: meshid,
-          meshdoc: mesh,
-          type: 'mesh',
+          meshid: mesh.meshid,
+          meshdoc: mesh.doc,
+          extra: mesh.extra,
+          type: mesh.type,
+          child_client_name: mesh.child_client_name,
           meshnodes: []
         };
 
         // Fetch associated nodes for the mesh
-        getNodeDataByMeshId(db, meshid, (nodeErr, nodes) => {
+        getNodeDataByMeshId(db, mesh.meshid, (nodeErr, nodes) => {
           if (nodeErr) {
             return sendResponse(res, 500, false, 'Error retrieving node data');
           }
@@ -115,7 +116,6 @@ exports.clientMeshData = async (req, res) => {
                 nodeid: node._id,
                 type: 'node',
                 doc: node,
-                extra: node.extra || null
               });
             });
           }
@@ -123,23 +123,25 @@ exports.clientMeshData = async (req, res) => {
           meshDataWithNodes.push(meshQueryData);
           completedMeshes++;
 
-          // Fetch notes (type:note)
-          getNotes(db, (noteErr, notes) => {
-            if (noteErr) {
-              return sendResponse(res, 500, false, 'Error retrieving note data');
-            }
+          // Check if all meshes have been processed
+          if (completedMeshes === meshes.length) {
+            // Fetch notes (type: note) after all meshes have been processed
+            getNotes(db, (noteErr, notes) => {
+              if (noteErr) {
+                return sendResponse(res, 500, false, 'Error retrieving note data');
+              }
 
-            if (notes && notes.length > 0) {
-              childData = notes;
-            }
+              if (notes && notes.length > 0) {
+                childData = notes;
+              }
 
-            if (completedMeshes === meshes.length) {
+              // Send response once everything is processed
               sendResponse(res, 200, true, 'Mesh data retrieved successfully', {
                 meshData: meshDataWithNodes,
                 childData: childData.length > 0 ? childData : null
               });
-            }
-          });
+            });
+          }
         });
       });
     });
@@ -150,6 +152,7 @@ exports.clientMeshData = async (req, res) => {
     return sendResponse(res, 500, false, 'Error retrieving client mesh data');
   }
 };
+
 
 
 
