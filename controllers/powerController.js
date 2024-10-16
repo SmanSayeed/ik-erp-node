@@ -188,4 +188,72 @@ exports.clientPowerDataWithChildren = (req, res) => {
 
 
 
+exports.powerData = async (req, res) => {
+  try {
+    const { nodeid, client_remotik_id } = req.query; // Use req.query to get query parameters
+
+    // Check for missing query parameters
+    if (!nodeid || !client_remotik_id) {
+      return res.status(400).json({ message: 'nodeid and client_remotik_id are required' });
+    }
+
+    // Get the database file path
+    const dbPath = getDatabaseFilePath(client_remotik_id);
+    
+    // Connect to the SQLite database
+    const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READONLY, (err) => {
+      if (err) {
+        throw new Error('Database connection error');
+      }
+    });
+
+    // Query the database to get data from the `power` table
+    const query = `SELECT id, doc FROM power WHERE nodeid = ?`;
+
+    db.all(query, [nodeid], (err, rows) => {
+      if (err) {
+        throw new Error('Error retrieving power data');
+      }
+
+      // If no rows are returned
+      if (rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'No power data found for the provided node ID', data: null });
+      }
+
+      // Parse the doc field for each row and format the response
+      const powerData = rows.map(row => {
+        const docData = JSON.parse(row.doc); // Parse the JSON doc field
+        
+        // Structure the response like in your example
+        return {
+          id: row.id,                             // From the row
+          nodeid: nodeid,                         // Provided in the request
+          time: docData.time,                     // Extracted from `doc`
+          power: docData.power,                   // Extracted from `doc`
+          node_name: docData.name,                // Extracted from `doc`
+          is_child: false,                        // Default as no child mesh in this example
+          child_name: null                        // Set to null as no child in this example
+        };
+      });
+
+      // Return the formatted data
+      return res.status(200).json({ success: true, data: powerData });
+    });
+
+    // Close the database connection
+    db.close((err) => {
+      if (err) {
+        throw new Error('Error closing database connection');
+      }
+    });
+
+  } catch (error) {
+    // Handle all errors in one place
+    console.error(error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+
 

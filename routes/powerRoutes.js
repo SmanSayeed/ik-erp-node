@@ -9,4 +9,6 @@ router.get('/child', powerController.getChildClientPowerData);
 
 router.get('/client-child', powerController.clientPowerDataWithChildren);
 
+router.get('/data', powerController.powerData);
+
 module.exports = router;
