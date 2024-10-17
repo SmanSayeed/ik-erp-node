@@ -208,7 +208,7 @@ exports.powerData = async (req, res) => {
     });
 
     // Query the database to get data from the `power` table
-    const query = `SELECT id, doc FROM power WHERE nodeid = ?`;
+    const query = `SELECT id, doc, time FROM power WHERE nodeid = ?`;
 
     db.all(query, [nodeid], (err, rows) => {
       if (err) {
@@ -227,8 +227,8 @@ exports.powerData = async (req, res) => {
         // Structure the response like in your example
         return {
           id: row.id,                             // From the row
-          nodeid: nodeid,                         // Provided in the request
-          time: docData.time,                     // Extracted from `doc`
+          nodeid: nodeid,    
+          time: row.time,                         // Provided in the request                    // Extracted from `doc`
           power: docData.power,                   // Extracted from `doc`
           node_name: docData.name,                // Extracted from `doc`
           is_child: false,                        // Default as no child mesh in this example
